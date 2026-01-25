@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.tests;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
+@Disabled
 @TeleOp
-public class OuttakeMeasureTest extends OpMode {
+public class OuttakeServoTest extends OpMode {
     final static double[] INCREMENTS = {0.1, 0.01, 0.001};
     private Servo servo;
     private int currIncrement = 0;

@@ -16,7 +16,7 @@ public class Intake {
         this.intake2 = hw.get(DcMotorEx.class, "intake2-parallelRight");
         this.intake2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.intake2.setDirection(DcMotorSimple.Direction.REVERSE);
-        this.isEnabled = false;
+        this.setEnabled(false);
     }
 
     public void setEnabled(boolean enabled) {
