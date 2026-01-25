@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Disabled
 @TeleOp
 public class OuttakeServoTest extends OpMode {
     final static double[] INCREMENTS = {0.1, 0.01, 0.001};

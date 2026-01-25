@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Outtake;
 
-@Disabled
 @TeleOp
 public class OuttakeTest extends OpMode {
     private Outtake outtake;
