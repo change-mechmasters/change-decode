@@ -11,19 +11,17 @@ import java.util.Optional;
 
 public class Shooter {
     public boolean isEnabled;
-    public double angularVelocity;
-    public final DcMotorEx motor;
-    // TODO: Tune PIDF
-    private static final PIDFCoefficients PIDF = new PIDFCoefficients(30, 0, 0.01, 0);
+    private double angularVelocity;
+    private final DcMotorEx motor;
     private static final double TARGET_HEIGHT = 0.9845; // DECODE Competition Manual, p. 64
     private static final double BOT_HEIGHT = 0.36;
-    private static final double THETA = 70;
+    private static final double LAUNCH_ANGLE = Math.toRadians(60);
     private static final double STANDARD_GRAVITY = 9.80665;
-    private static final double WHEEL_RADIUS = 0.045;
-    private static final double GEAR_RATIO = 21.0 / 26.0;
-    // TODO: Tune
-    private static final double ENERGY_TRANSFER_PROPORTION = 1;
-    private static final double MAX_VELOCITY = 1000;
+    private static final PIDFCoefficients PIDF = new PIDFCoefficients(300, 0, 0, 20);
+    private static final double CONVERSION_RATE = 2.32;
+    private static final double CONVERSION_ADJUSTMENT = 1.12;
+    private static final double MAX_VELOCITY = 7.71;
+    private static final double MAX_ERROR = 0.5;
 
     public Shooter(HardwareMap hw) {
         this.motor = hw.get(DcMotorEx.class, "shooter");
@@ -45,16 +43,17 @@ public class Shooter {
     }
 
     public boolean isReady() {
-        return this.motor.getVelocity(AngleUnit.RADIANS) == this.angularVelocity;
+        final double error = this.angularVelocity - this.motor.getVelocity(AngleUnit.RADIANS);
+        return Math.abs(error) < MAX_ERROR;
     }
     
     public void setEnabled(boolean enabled) {
+        this.isEnabled = enabled;
+        this.setAngularVelocity(this.angularVelocity);
         if (enabled)
             this.motor.setPower(1);
         else
             this.motor.setPower(0);
-        this.isEnabled = enabled;
-        this.setAngularVelocity(this.angularVelocity);
     }
 
     private void setAngularVelocity(double angularVelocity) {
@@ -66,15 +65,13 @@ public class Shooter {
     }
 
     private double calculateAngularVelocity(double artifactVelocity) {
-        final double k = Math.sqrt(ENERGY_TRANSFER_PROPORTION);
-        final double angularVelocity = artifactVelocity / (k * WHEEL_RADIUS);
-        return angularVelocity / GEAR_RATIO;
+        return CONVERSION_RATE*artifactVelocity + CONVERSION_ADJUSTMENT;
     }
 
     private Optional<Double> calculateDesiredVelocity(double distance) {
         final double heightDiff = TARGET_HEIGHT - BOT_HEIGHT;
-        final double cos = Math.cos(THETA);
-        final double tan = Math.tan(THETA);
+        final double cos = Math.cos(LAUNCH_ANGLE);
+        final double tan = Math.tan(LAUNCH_ANGLE);
 
         final double denominator = (2*cos*cos)*(distance*tan - heightDiff);
         if (denominator <= 0)
