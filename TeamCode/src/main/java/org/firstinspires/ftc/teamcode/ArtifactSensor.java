@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class ArtifactSensor {
-    private final ColorRangeSensor sensor;
-    private static final double MAX_DISTANCE = 5;
+    public final ColorRangeSensor sensor;
+    private static final double MIN_HUE = 400;
 
     public ArtifactSensor(HardwareMap hw) {
         this.sensor = hw.get(ColorRangeSensor.class, "colorSensor");
@@ -15,6 +15,10 @@ public class ArtifactSensor {
     }
 
     public boolean isArtifactPresent() {
-        return this.sensor.getDistance(DistanceUnit.CM) < MAX_DISTANCE;
+        return MIN_HUE < this.getHue();
+    }
+
+    private double getHue() {
+        return this.sensor.red() + this.sensor.green() + this.sensor.blue();
     }
 }

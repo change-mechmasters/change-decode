@@ -20,7 +20,11 @@ public class Shooter {
     private static final PIDFCoefficients PIDF = new PIDFCoefficients(300, 0, 0, 20);
     private static final double CONVERSION_RATE = 2.32;
     private static final double CONVERSION_ADJUSTMENT = 1.12;
-    private static final double MAX_VELOCITY = 7.71;
+    // STRATEGY: The maximum angular velocity is 18-21 depending on the battery's voltage,
+    //  so the maximum velocity will be 7.28-8.57. We choose the pessimistic case here,
+    //  so that we'll be sure that all shots will land regardless of voltage.
+    //  We lose some distance but it's okay because we can already shoot from anywhere with this.
+    private static final double MAX_VELOCITY = 7.28;
     private static final double MAX_ERROR = 0.5;
 
     public Shooter(HardwareMap hw) {

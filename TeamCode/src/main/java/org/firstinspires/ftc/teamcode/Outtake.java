@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class Outtake {
-    private static final double UP_POSITION = 0.28;
+    private static final double UP_POSITION = 0.30;
     private static final double DOWN_POSITION = 0.47;
     private final Servo servo;
     private double position;
