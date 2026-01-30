@@ -4,20 +4,20 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.ArtifactSensor;
+import org.firstinspires.ftc.teamcode.ArtifactSensors;
 
 @TeleOp
 public class SensorTest extends OpMode {
-    private ArtifactSensor artifactSensor;
+    private ArtifactSensors artifactSensors;
 
     @Override
     public void init() {
-        this.artifactSensor = new ArtifactSensor(hardwareMap);
+        this.artifactSensors = new ArtifactSensors(hardwareMap);
     }
 
     @Override
     public void loop() {
-        boolean isArtifactPresent = this.artifactSensor.isArtifactPresent();
-        telemetry.addData("Is an artifact present?", isArtifactPresent);
+        telemetry.addData("Shooter artifact", this.artifactSensors.isShooterArtifactReady());
+        telemetry.addData("Artifact count", this.artifactSensors.getArtifactCount());
     }
 }

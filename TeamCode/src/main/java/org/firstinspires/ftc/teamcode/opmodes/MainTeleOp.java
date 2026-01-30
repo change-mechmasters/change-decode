@@ -12,13 +12,13 @@ import org.firstinspires.ftc.teamcode.Robot;
 
 @TeleOp
 public class MainTeleOp extends OpMode {
-    // TODO: Load bot state from auto.
     private Robot robot;
-    private final Pose startPose = new Pose(72, 72, 0);
+    private int lastArtifactCount;
+    private boolean lastAimState;
 
     @Override
     public void init() {
-        this.robot = new Robot(hardwareMap, startPose, 3);
+        this.robot = new Robot(hardwareMap, BotContext.botPose);
     }
 
     @Override
@@ -52,17 +52,11 @@ public class MainTeleOp extends OpMode {
                 this.robot.exitIntakingState();
         }
 
-        if (gamepad1.rightBumperWasPressed())
-            this.robot.artifactCount += 1;
-        if (gamepad1.leftBumperWasPressed())
-            this.robot.artifactCount -= 1;
-
+        Pose botPose = this.robot.follower.getPose();
         telemetry.addData("State", this.robot.state);
-        telemetry.addData("Bot pose", this.robot.follower.getPose());
+        telemetry.addData("Bot pose", botPose);
         telemetry.addData("Artifact count", this.robot.artifactCount);
-
-        telemetry.addData("Desired heading", Math.toDegrees(this.robot.getDesiredHeading()));
+        telemetry.addData("Desired heading", Math.toDegrees(Robot.getDesiredHeading(botPose)));
         telemetry.addData("Current heading", Math.toDegrees(this.robot.follower.getHeading()));
-        telemetry.addData("Aim ready", this.robot.isAimReady());
     }
 }

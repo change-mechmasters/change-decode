@@ -5,16 +5,19 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 public class Robot {
     public State state;
     public Follower follower;
     public int artifactCount;
+    private ElapsedTime emptyShooterTimer = new ElapsedTime();
     private ShooterState shooterState;
     private final Intake intake;
-    private final ArtifactSensor artifactSensor;
+    private final ArtifactSensors artifactSensors;
     private final Outtake outtake;
     private final Shooter shooter;
 
@@ -22,6 +25,7 @@ public class Robot {
     private static final double FIELD_DISTANCE_CONVERSION_RATE = 3.6 / 144.0;
     private static final double GOAL_OPENING_CENTER_DISTANCE = 0.4645 / 2;
     private static final double MAX_AIM_ERROR = Math.toRadians(7.5);
+    private static final double MAX_EMPTY_TIME = 1.75;
     private static Pose GOAL;
     private static final Pose BLUE_GOAL = new Pose(0, 144);
     private static final Pose RED_GOAL = new Pose(144, 144);
@@ -38,9 +42,9 @@ public class Robot {
         SHOOTING,
     }
 
-    public Robot(HardwareMap hw, Pose initialPose, int initialArtifactCount) {
+    public Robot(HardwareMap hw, Pose initialPose) {
         this.intake = new Intake(hw);
-        this.artifactSensor = new ArtifactSensor(hw);
+        this.artifactSensors = new ArtifactSensors(hw);
         this.outtake = new Outtake(hw);
         this.shooter = new Shooter(hw);
 
@@ -50,8 +54,6 @@ public class Robot {
 
         this.state = State.DRIVING;
 
-        this.artifactCount = initialArtifactCount;
-
         if (BotContext.alliance == BotContext.Alliance.BLUE)
             GOAL = BLUE_GOAL;
         else
@@ -59,7 +61,9 @@ public class Robot {
     }
 
     public void update() {
+        BotContext.botPose = this.follower.getPose();
         follower.update();
+        this.artifactCount = this.artifactSensors.getArtifactCount();
         switch (this.state) {
             case DRIVING:
                 this.handleDrivingState();
@@ -83,7 +87,7 @@ public class Robot {
 
     public void exitShootingState() {
         this.outtake.setDown();
-        //this.follower.pausePathFollowing();
+        this.follower.pausePathFollowing();
         this.state = State.DRIVING;
     }
 
@@ -123,32 +127,38 @@ public class Robot {
                 // STRATEGY: Shooter acceleration is not the bottleneck; the intake is.
                 //  Hence, incremental distance changes are not necessary.
                 final double distance = this.getDistanceToGoal() - GOAL_OPENING_CENTER_DISTANCE;
-                final double heading = this.getDesiredHeading();
-                //this.follower.turnTo(heading);
+                final double heading = Robot.getDesiredHeading(this.follower.getPose());
+                //this.setBotHeading(heading);
                 this.shooter.setDesiredVelocity(distance);
                 this.outtake.setDown();
-                if (this.shooter.isReady() && this.artifactSensor.isArtifactPresent() /*&& this.isAimReady()*/)
+                if (this.shooter.isReady() && this.artifactSensors.isShooterArtifactReady() /*&& this.isAimReady()*/)
                     this.shooterState = ShooterState.SHOOTING;
                 break;
             case SHOOTING:
                 this.outtake.setUp();
-                if (!this.artifactSensor.isArtifactPresent()) {
-                    this.artifactCount -= 1;
+                if (!this.artifactSensors.isShooterArtifactReady())
                     this.shooterState = ShooterState.PREPARING;
-                }
                 break;
         }
 
-        if (this.artifactCount == 0)
-            this.exitShootingState();
+        if (this.artifactCount == 0) {
+            if (this.emptyShooterTimer.seconds() > MAX_EMPTY_TIME)
+                this.exitShootingState();
+        }
+        else
+            this.emptyShooterTimer.reset();
     }
 
     private void handleIntakingState() {
         // TODO: Automated intaking state. This requires:
-        //  - Upgrading ArtifactSensor into ArtifactSensors, allowing for
+        //  - [x] Upgrading ArtifactSensor into ArtifactSensors, allowing for
         //    knowing how many artifacts are in storage at any moment.
-        //  - Adding automatic camera-detection of artifacts, allowing for
+        //  - [ ] Adding automatic camera-detection of artifacts, allowing for
         //    the bot to automatically charge to them.
+        this.intake.setEnabled(true);
+        this.shooter.setEnabled(false);
+        if (this.artifactCount == 3)
+            this.exitIntakingState();
     }
 
     private double getDistanceToGoal() {
@@ -159,21 +169,21 @@ public class Robot {
         return distance_ticks * FIELD_DISTANCE_CONVERSION_RATE;
     }
 
-    public double getDesiredHeading() {
-        final Pose botPose = this.follower.getPose();
+    // TODO: Visibility
+    public boolean isAimReady() {
+        final double desiredHeading = Robot.getDesiredHeading(this.follower.getPose());
+        final double currentHeading = this.follower.getTotalHeading();
+        return Math.abs(desiredHeading - currentHeading) < MAX_AIM_ERROR;
+    }
+
+    public static double getDesiredHeading(Pose botPose) {
         final double x_diff = GOAL.getX() - botPose.getX();
         final double y_diff = GOAL.getY() - botPose.getY();
         final double denominator = Math.sqrt(x_diff*x_diff + y_diff*y_diff);
         final double angle = Math.acos(Math.abs(x_diff) / denominator);
         if (botPose.getX() > GOAL.getX())
-            return Math.toRadians(180) - angle;
+            return AngleUnit.normalizeRadians(Math.toRadians(180) - angle);
         else
-            return angle;
-    }
-
-    public boolean isAimReady() {
-        final double desiredHeading = this.getDesiredHeading();
-        final double currentHeading = this.follower.getTotalHeading();
-        return Math.abs(desiredHeading - currentHeading) < MAX_AIM_ERROR;
+            return AngleUnit.normalizeRadians(angle);
     }
 }
