@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
@@ -7,26 +8,26 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.BotContext;
 import org.firstinspires.ftc.teamcode.Robot;
 
 @Autonomous
-public class MainAuto extends OpMode {
+public class ForwardAuto extends OpMode {
     private Robot robot;
     private PathState pathState;
     private final ElapsedTime intakingTimer = new ElapsedTime();
-    private final Pose startPose = new Pose(15, 128, Math.toRadians(133));
-    private final Pose shootPose = new Pose(48, 95, Math.toRadians(134));
-    private final Pose pickup1Start = new Pose(40, 84, Math.toRadians(180));
-    private final Pose pickup1End = new Pose(15, pickup1Start.getY(), Math.toRadians(180));
-    private final Pose endPose = new Pose(48, 58, Math.toRadians(180));
-    private PathChain shootInitial, startGrab1, grab1, shoot1, park;
+    private final Pose startPose = buildPose(20, 122, Math.toRadians(145));
+    private final Pose shootPose = buildPose(48, 95, Math.toRadians(135));
+    private final Pose pickup1Control = buildPose(62, 77, Math.toRadians(180));
+    private final Pose pickup1 = buildPose(22, 80, Math.toRadians(180));
+    private final Pose endPose = buildPose(55, 70, Math.toRadians(180));
+    private PathChain shootInitial,grab1, shoot1, park;
 
     private static final double MAX_INTAKING_TIME = 5;
 
     enum PathState {
         GO_TO_SHOOT_INITIAL,
         SHOOT_INITIAL,
-        GO_TO_GRAB1,
         GRAB1,
         GO_TO_SHOOT1,
         SHOOT1,
@@ -38,21 +39,20 @@ public class MainAuto extends OpMode {
     @Override
     public void init() {
         this.robot = new Robot(hardwareMap, startPose);
+        this.robot.follower.setMaxPower(0.5);
+        BotContext.setGamepadColor(gamepad1);
         this.shootInitial = this.robot.follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
                 .build();
-        this.startGrab1 = this.robot.follower.pathBuilder()
-                .addPath(new BezierLine(shootPose, pickup1Start))
-                .setLinearHeadingInterpolation(shootPose.getHeading(), pickup1Start.getHeading())
-                .build();
         this.grab1 = this.robot.follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Start, pickup1End))
-                .setConstantHeadingInterpolation(Math.toRadians(180))
+                .addPath(new BezierCurve(shootPose, pickup1Control, pickup1))
+                .setConstantHeadingInterpolation(pickup1.getHeading())
+                .setVelocityConstraint(3)
                 .build();
         this.shoot1 = this.robot.follower.pathBuilder()
-                .addPath(new BezierLine(pickup1End, shootPose))
-                .setLinearHeadingInterpolation(pickup1End.getHeading(), shootPose.getHeading())
+                .addPath(new BezierLine(pickup1, shootPose))
+                .setLinearHeadingInterpolation(pickup1.getHeading(), shootPose.getHeading())
                 .build();
         this.park = this.robot.follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, endPose))
@@ -63,6 +63,7 @@ public class MainAuto extends OpMode {
     @Override
     public void start() {
         this.pathState = PathState.GO_TO_SHOOT_INITIAL;
+        telemetry.addData("Current alliance", BotContext.alliance);
     }
 
     @Override
@@ -83,22 +84,14 @@ public class MainAuto extends OpMode {
             case SHOOT_INITIAL:
                 if (!this.robot.follower.isBusy()) {
                     this.robot.enterShootingState();
-                    this.intakingTimer.reset();
-                    return PathState.GO_TO_GRAB1;
-                }
-                else
-                    return this.pathState;
-            case GO_TO_GRAB1:
-                if (this.robot.state == Robot.State.DRIVING) {
-                    this.robot.exitShootingState();
-                    this.robot.follower.followPath(this.startGrab1);
                     return PathState.GRAB1;
                 }
                 else
                     return this.pathState;
             case GRAB1:
-                if (!this.robot.follower.isBusy()) {
+                if (this.robot.state == Robot.State.DRIVING) {
                     this.robot.enterIntakingState();
+                    this.intakingTimer.reset();
                     this.robot.follower.followPath(this.grab1);
                     return PathState.GO_TO_SHOOT1;
                 }
@@ -127,11 +120,18 @@ public class MainAuto extends OpMode {
                 }
                 else
                     return this.pathState;
-                break;
             case END:
                 if (!this.robot.follower.isBusy())
                     this.robot.follower.pausePathFollowing();
                 return this.pathState;
         }
+        return this.pathState; // This should never run but it errors without it.
+    }
+
+    private Pose buildPose(double x, double y, double heading) {
+        if (BotContext.alliance == BotContext.Alliance.BLUE)
+            return new Pose(x, y, heading);
+        else
+            return new Pose(144 - x, y, Math.toRadians(180) - heading);
     }
 }

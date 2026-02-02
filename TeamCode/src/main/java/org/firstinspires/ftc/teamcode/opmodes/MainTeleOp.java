@@ -19,6 +19,7 @@ public class MainTeleOp extends OpMode {
     @Override
     public void init() {
         this.robot = new Robot(hardwareMap, BotContext.botPose);
+        BotContext.setGamepadColor(gamepad1);
     }
 
     @Override
@@ -29,6 +30,8 @@ public class MainTeleOp extends OpMode {
     @Override
     public void start() {
         this.robot.follower.startTeleopDrive();
+        this.lastAimState = this.robot.isAimReady();
+        this.lastArtifactCount = this.robot.artifactCount;
     }
 
     @Override
@@ -58,5 +61,16 @@ public class MainTeleOp extends OpMode {
         telemetry.addData("Artifact count", this.robot.artifactCount);
         telemetry.addData("Desired heading", Math.toDegrees(Robot.getDesiredHeading(botPose)));
         telemetry.addData("Current heading", Math.toDegrees(this.robot.follower.getHeading()));
+
+        final boolean currentAimState = this.robot.isAimReady();
+        if (this.lastAimState != currentAimState) {
+            gamepad1.rumble(1000);
+        }
+        if (this.lastArtifactCount != this.robot.artifactCount) {
+            gamepad1.rumble(500);
+        }
+
+        this.lastArtifactCount = this.robot.artifactCount;
+        this.lastAimState = currentAimState;
     }
 }

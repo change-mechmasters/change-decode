@@ -23,7 +23,6 @@ public class Robot {
 
     // DECODE Competition Manual
     private static final double FIELD_DISTANCE_CONVERSION_RATE = 3.6 / 144.0;
-    private static final double GOAL_OPENING_CENTER_DISTANCE = 0.4645 / 2;
     private static final double MAX_AIM_ERROR = Math.toRadians(7.5);
     private static final double MAX_EMPTY_TIME = 1.75;
     private static Pose GOAL;
@@ -87,7 +86,6 @@ public class Robot {
 
     public void exitShootingState() {
         this.outtake.setDown();
-        this.follower.pausePathFollowing();
         this.state = State.DRIVING;
     }
 
@@ -103,9 +101,8 @@ public class Robot {
     //  I have omitted redundant checks, because something would have already went wrong
     //  if the function is getting called in the first place.
     private void handleDrivingState() {
-        // STRATEGY: It isn't intended that we'll collect artifacts in this state,
-        // but it isn't a harm if we do.
-        this.intake.setEnabled(true);
+        // STRATEGY: Intake wastes too much power in driving state.
+        this.intake.setEnabled(false);
         // STRATEGY: The shooter can decelerate almost immediately, but it takes
         //  a few seconds to accelerate, so it's better to start accelerating from now.
         this.shooter.setEnabled(true);
@@ -126,12 +123,9 @@ public class Robot {
             case PREPARING:
                 // STRATEGY: Shooter acceleration is not the bottleneck; the intake is.
                 //  Hence, incremental distance changes are not necessary.
-                final double distance = this.getDistanceToGoal() - GOAL_OPENING_CENTER_DISTANCE;
-                final double heading = Robot.getDesiredHeading(this.follower.getPose());
-                //this.setBotHeading(heading);
-                this.shooter.setDesiredVelocity(distance);
+                this.shooter.setDesiredVelocity(this.getDistanceToGoal());
                 this.outtake.setDown();
-                if (this.shooter.isReady() && this.artifactSensors.isShooterArtifactReady() /*&& this.isAimReady()*/)
+                if (this.shooter.isReady() && this.artifactSensors.isShooterArtifactReady())
                     this.shooterState = ShooterState.SHOOTING;
                 break;
             case SHOOTING:

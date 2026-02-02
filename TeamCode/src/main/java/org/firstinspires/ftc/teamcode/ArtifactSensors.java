@@ -28,7 +28,7 @@ public class ArtifactSensors {
 
 class ArtifactSensor {
     public final ColorSensor sensor;
-    private static final double MIN_HUE = 400;
+    private static final double MIN_HUE = 500;
 
     public ArtifactSensor(HardwareMap hw, String name) {
         this.sensor = hw.get(ColorSensor.class, name);

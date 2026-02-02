@@ -23,7 +23,7 @@ public class Constants {
             .centripetalScaling(0.005);
 
     public static MecanumConstants DRIVE_CONSTANTS = new MecanumConstants()
-            .maxPower(0.5) // TODO: Fix the drive to allow for strafe at max power
+            .maxPower(0.75) // TODO: Fix the drive to allow for strafe at max power
             .rightFrontMotorName("frontRight-perpendicular")
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftFrontMotorName("frontLeft")
