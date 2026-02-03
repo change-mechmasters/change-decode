@@ -52,6 +52,9 @@ public class Shooter {
     }
     
     public void setEnabled(boolean enabled) {
+        if (this.isEnabled == enabled)
+            return;
+
         this.isEnabled = enabled;
         this.setAngularVelocity(this.angularVelocity);
         if (enabled)
@@ -61,6 +64,10 @@ public class Shooter {
     }
 
     private void setAngularVelocity(double angularVelocity) {
+        final double error = Math.abs(this.angularVelocity - angularVelocity);
+        if (error < MAX_ERROR)
+            return;
+
         this.angularVelocity = angularVelocity;
         if (this.isEnabled)
             this.motor.setVelocity(angularVelocity, AngleUnit.RADIANS);

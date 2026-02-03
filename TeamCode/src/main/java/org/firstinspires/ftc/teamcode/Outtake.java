@@ -22,11 +22,10 @@ public class Outtake {
         this.setPosition(DOWN_POSITION);
     }
 
-    public boolean isReady() {
-        return this.servo.getPosition() == this.position;
-    }
-    
     private void setPosition(double position) {
+        if (this.position == position)
+            return;
+
         this.position = position;
         this.servo.setPosition(position);
     }

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class ArtifactSensors {
     private final ArtifactSensor sensor1;
@@ -27,15 +28,29 @@ public class ArtifactSensors {
 }
 
 class ArtifactSensor {
-    public final ColorSensor sensor;
-    private static final double MIN_HUE = 500;
+    private boolean artifactPresent;
+    private final ColorSensor sensor;
+    private final ElapsedTime sensorTimer = new ElapsedTime();
+    private static final double MIN_INTENSITY = 500;
+    private static final double MAX_CACHE_TIME = 50;
 
     public ArtifactSensor(HardwareMap hw, String name) {
         this.sensor = hw.get(ColorSensor.class, name);
         this.sensor.enableLed(true);
+        this.artifactPresent = this.checkPresent();
+        this.sensorTimer.reset();
     }
 
     public boolean isArtifactPresent() {
-        return this.sensor.red() + this.sensor.green() + this.sensor.blue() > MIN_HUE;
+        if (sensorTimer.milliseconds() > MAX_CACHE_TIME) {
+            this.artifactPresent = this.checkPresent();
+            this.sensorTimer.reset();
+        }
+        return this.artifactPresent;
+    }
+
+    private boolean checkPresent() {
+        final double intensity = this.sensor.red() + this.sensor.green() + this.sensor.blue();
+        return intensity > MIN_INTENSITY;
     }
 }

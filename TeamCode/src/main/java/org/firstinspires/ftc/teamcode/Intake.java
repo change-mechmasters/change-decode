@@ -20,6 +20,9 @@ public class Intake {
     }
 
     public void setEnabled(boolean enabled) {
+        if (this.isEnabled == enabled)
+            return;
+
         this.isEnabled = enabled;
         if (enabled) {
             this.intake1.setPower(1);

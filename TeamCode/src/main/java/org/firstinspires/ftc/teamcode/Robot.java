@@ -16,13 +16,13 @@ public class Robot {
     public int artifactCount;
     private ElapsedTime emptyShooterTimer = new ElapsedTime();
     private ShooterState shooterState;
+    private final Hubs hubs;
     private final Intake intake;
     private final ArtifactSensors artifactSensors;
     private final Outtake outtake;
     private final Shooter shooter;
 
-    // DECODE Competition Manual
-    private static final double FIELD_DISTANCE_CONVERSION_RATE = 3.6 / 144.0;
+    private static final double FIELD_DISTANCE_CONVERSION_RATE = 3.6 / 144.0; // Competition manual
     private static final double MAX_AIM_ERROR = Math.toRadians(7.5);
     private static final double MAX_EMPTY_TIME = 1.75;
     private static Pose GOAL;
@@ -42,6 +42,7 @@ public class Robot {
     }
 
     public Robot(HardwareMap hw, Pose initialPose) {
+        this.hubs = new Hubs(hw);
         this.intake = new Intake(hw);
         this.artifactSensors = new ArtifactSensors(hw);
         this.outtake = new Outtake(hw);
@@ -60,8 +61,9 @@ public class Robot {
     }
 
     public void update() {
-        BotContext.botPose = this.follower.getPose();
+        hubs.update();
         follower.update();
+        BotContext.botPose = this.follower.getPose();
         this.artifactCount = this.artifactSensors.getArtifactCount();
         switch (this.state) {
             case DRIVING:
