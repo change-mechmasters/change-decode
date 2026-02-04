@@ -31,7 +31,7 @@ class ArtifactSensor {
     private boolean artifactPresent;
     private final ColorSensor sensor;
     private final ElapsedTime sensorTimer = new ElapsedTime();
-    private static final double MIN_INTENSITY = 500;
+    private static final double MIN_INTENSITY = 450;
     private static final double MAX_CACHE_TIME = 50;
 
     public ArtifactSensor(HardwareMap hw, String name) {

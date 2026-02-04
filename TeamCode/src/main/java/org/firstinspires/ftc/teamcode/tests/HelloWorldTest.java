@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.tests;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp
+@TeleOp(group = "Tests")
 public class HelloWorldTest extends OpMode {
     @Override
     public void init() {}

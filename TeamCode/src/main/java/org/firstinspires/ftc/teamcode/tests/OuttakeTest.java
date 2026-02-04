@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode.tests;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Outtake;
 
-@TeleOp
+@TeleOp(group = "Tests")
 public class OuttakeTest extends OpMode {
     private Outtake outtake;
 

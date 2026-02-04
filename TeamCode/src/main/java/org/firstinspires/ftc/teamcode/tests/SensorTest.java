@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.ArtifactSensors;
 
-@TeleOp
+@TeleOp(group = "Tests")
 public class SensorTest extends OpMode {
     private ArtifactSensors artifactSensors;
 

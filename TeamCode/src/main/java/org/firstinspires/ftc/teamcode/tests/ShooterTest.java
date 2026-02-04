@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.Outtake;
 import org.firstinspires.ftc.teamcode.Shooter;
 
 // For this test to work properly, TARGET_HEIGHT in Shooter must be set to 0.
-@TeleOp
+@TeleOp(group = "Tests")
 public class ShooterTest extends OpMode {
     final static double[] INCREMENTS = {10, 1, 0.1, 0.01, 0.001};
     private Shooter shooter;

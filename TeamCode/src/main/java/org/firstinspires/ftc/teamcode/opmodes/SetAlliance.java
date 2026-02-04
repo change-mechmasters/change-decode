@@ -14,6 +14,7 @@ public class SetAlliance extends OpMode {
     public void loop() {
         telemetry.addData("Current alliance", BotContext.alliance);
         telemetry.addLine("Press left bumper for BLUE and right bumper for RED");
+        BotContext.setGamepadColor(gamepad1);
 
         if (gamepad1.leftBumperWasPressed()) 
             BotContext.alliance = BotContext.Alliance.BLUE;

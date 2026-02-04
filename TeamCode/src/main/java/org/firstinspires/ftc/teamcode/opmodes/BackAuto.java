@@ -47,9 +47,13 @@ public class BackAuto extends OpMode {
     }
 
     @Override
+    public void init_loop() {
+        telemetry.addData("Current alliance", BotContext.alliance);
+    }
+
+    @Override
     public void start() {
         this.pathState = PathState.GO_TO_SHOOT_INITIAL;
-        telemetry.addData("Current alliance", BotContext.alliance);
     }
 
     @Override
