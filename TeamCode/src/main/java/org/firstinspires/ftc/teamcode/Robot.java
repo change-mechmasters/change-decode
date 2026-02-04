@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.PathChain;
+import com.pedropathing.math.MathFunctions;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -14,8 +15,11 @@ public class Robot {
     public State state;
     public Follower follower;
     public int artifactCount;
-    private ElapsedTime emptyShooterTimer = new ElapsedTime();
+    public boolean autoAim;
+    private double desiredHeading;
     private ShooterState shooterState;
+    private final PIDFController aimController;
+    private final ElapsedTime emptyShooterTimer = new ElapsedTime();
     private final Hubs hubs;
     private final Intake intake;
     private final ArtifactSensors artifactSensors;
@@ -53,6 +57,8 @@ public class Robot {
         follower.update();
 
         this.state = State.DRIVING;
+        this.autoAim = false;
+        this.aimController = new PIDFController(follower.constants.coefficientsHeadingPIDF);
 
         if (BotContext.alliance == BotContext.Alliance.BLUE)
             GOAL = BLUE_GOAL;
@@ -63,8 +69,13 @@ public class Robot {
     public void update() {
         hubs.update();
         follower.update();
-        BotContext.botPose = this.follower.getPose();
         this.artifactCount = this.artifactSensors.getArtifactCount();
+        BotContext.botPose = this.follower.getPose();
+        if (this.autoAim) {
+            this.desiredHeading = this.getDesiredHeading();
+            this.aimController.updateError(this.getHeadingError());
+        }
+
         switch (this.state) {
             case DRIVING:
                 this.handleDrivingState();
@@ -78,17 +89,34 @@ public class Robot {
         }
     }
 
+    public void setTeleOpDrive(Gamepad gamepad) {
+        if (this.autoAim)
+            this.follower.setTeleOpDrive(
+                    -gamepad.left_stick_y, -gamepad.left_stick_x, this.aimController.run()
+            );
+        else
+            this.follower.setTeleOpDrive(
+                    -gamepad.left_stick_y, -gamepad.left_stick_x, -gamepad.right_stick_x
+            );
+    }
+
+    public void toggleAutoAim() {
+        this.autoAim = !this.autoAim;
+    }
+
     // SAFETY: It is expected that these state transition functions
     //  will be called in the right state, otherwise the correct state transitions
     //  may not get triggered and everything will come to ruin.
     public void enterShootingState() {
-        this.shooterState = ShooterState.PREPARING;
         this.state = State.SHOOTING;
+        this.shooterState = ShooterState.PREPARING;
+        this.autoAim = true;
     }
 
     public void exitShootingState() {
-        this.outtake.setDown();
         this.state = State.DRIVING;
+        this.outtake.setDown();
+        this.autoAim = false;
     }
 
     public void enterIntakingState() {
@@ -116,10 +144,6 @@ public class Robot {
         //  We could turn it on and off, providing more voltage to the other mechanisms,
         //  but this is likely faster since there will already be a force on the artifact
         //  as soon as the outtake goes down.
-        // TODO: Fix aim. Current problems:
-        //  - I don't know how to make it stop turning, giving control back to the OpMode
-        //  - It takes a longer path for turning for BLUE
-        //  - It would be cool if it could be sped up
         this.intake.setEnabled(true);
         switch (this.shooterState) {
             case PREPARING:
@@ -165,21 +189,20 @@ public class Robot {
         return distance_ticks * FIELD_DISTANCE_CONVERSION_RATE;
     }
 
-    // TODO: Visibility
-    public boolean isAimReady() {
-        final double desiredHeading = Robot.getDesiredHeading(this.follower.getPose());
-        final double currentHeading = this.follower.getTotalHeading();
-        return Math.abs(desiredHeading - currentHeading) < MAX_AIM_ERROR;
+    private double getDesiredHeading() {
+        final Pose botPose = this.follower.getPose();
+        final double opp = Math.abs(GOAL.getY() - botPose.getY());
+        final double adj = Math.abs(GOAL.getX() - botPose.getX());
+        final double angle = Math.atan(opp / adj);
+        if (botPose.getX() > GOAL.getX())
+            return Math.toRadians(180) - angle;
+        else
+            return angle;
     }
 
-    public static double getDesiredHeading(Pose botPose) {
-        final double x_diff = GOAL.getX() - botPose.getX();
-        final double y_diff = GOAL.getY() - botPose.getY();
-        final double denominator = Math.sqrt(x_diff*x_diff + y_diff*y_diff);
-        final double angle = Math.acos(Math.abs(x_diff) / denominator);
-        if (botPose.getX() > GOAL.getX())
-            return AngleUnit.normalizeRadians(Math.toRadians(180) - angle);
-        else
-            return AngleUnit.normalizeRadians(angle);
+    private double getHeadingError() {
+        final double currHeading = this.follower.getHeading();
+        final double direction = MathFunctions.getTurnDirection(currHeading, this.desiredHeading);
+        return direction * MathFunctions.getSmallestAngleDifference(currHeading, this.desiredHeading);
     }
 }

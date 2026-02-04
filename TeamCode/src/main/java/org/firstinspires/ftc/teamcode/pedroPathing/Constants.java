@@ -17,10 +17,10 @@ public class Constants {
             .mass(8.6)
             .forwardZeroPowerAcceleration(-43.7)
             .lateralZeroPowerAcceleration(-63.7)
-            .translationalPIDFCoefficients(new PIDFCoefficients(.08, 0, .006, .02))
-            .headingPIDFCoefficients(new PIDFCoefficients(0.6, 0, 0.009, 0.025))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025, 0, 0.0001, 0.01, 0.6))
-            .centripetalScaling(0.005);
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.06, 0, 0.008, 0.02))
+            .headingPIDFCoefficients(new PIDFCoefficients(1.0, 0, 0.06, 0.02))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.6, 0, 0.008, 0.6, 0.02))
+            .centripetalScaling(0.001);
 
     public static MecanumConstants DRIVE_CONSTANTS = new MecanumConstants()
             .maxPower(0.75) // TODO: Fix the drive to allow for strafe at max power

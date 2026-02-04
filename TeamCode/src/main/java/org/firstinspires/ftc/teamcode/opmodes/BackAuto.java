@@ -17,7 +17,7 @@ public class BackAuto extends OpMode {
     private PathState pathState;
     private final ElapsedTime intakingTimer = new ElapsedTime();
     private final Pose startPose = buildPose(48, 8, Math.toRadians(90));
-    private final Pose shootPose = buildPose(60, 20, Math.toRadians(114));
+    private final Pose shootPose = buildPose(60, 20, Math.toRadians(116));
     private final Pose pickup1Control = buildPose(85, 35, Math.toRadians(180));
     private final Pose pickup1 = buildPose(9, 36, Math.toRadians(180));
     private PathChain shootInitial, grab1;

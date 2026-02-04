@@ -17,11 +17,11 @@ public class ForwardAuto extends OpMode {
     private PathState pathState;
     private final ElapsedTime intakingTimer = new ElapsedTime();
     private final Pose startPose = buildPose(20, 122, Math.toRadians(145));
-    private final Pose shootPose = buildPose(48, 95, Math.toRadians(135));
+    private final Pose shootPose = buildPose(48, 95, Math.toRadians(134));
     private final Pose pickup1Control = buildPose(62, 77, Math.toRadians(180));
     private final Pose pickup1 = buildPose(22, 80, Math.toRadians(180));
     private final Pose endPose = buildPose(55, 70, Math.toRadians(180));
-    private PathChain shootInitial,grab1, shoot1, park;
+    private PathChain shootInitial, grab1, shoot1, park;
 
     private static final double MAX_INTAKING_TIME = 5;
 

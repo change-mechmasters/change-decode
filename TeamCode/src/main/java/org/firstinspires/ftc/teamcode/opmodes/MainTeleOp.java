@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -37,9 +36,9 @@ public class MainTeleOp extends OpMode {
     public void loop() {
         this.robot.update();
 
-        this.robot.follower.setTeleOpDrive(
-                -gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x
-        );
+        this.robot.setTeleOpDrive(gamepad1);
+        if (gamepad1.rightStickButtonWasPressed())
+            this.robot.toggleAutoAim();
 
         if (gamepad1.circleWasPressed()) {
             if (this.robot.state == Robot.State.DRIVING)
@@ -56,10 +55,10 @@ public class MainTeleOp extends OpMode {
                 this.robot.exitIntakingState();
         }
 
-        Pose botPose = this.robot.follower.getPose();
         telemetry.addData("State", this.robot.state);
+        telemetry.addData("Auto aim", this.robot.autoAim);
         telemetry.addData("Artifact count", this.robot.artifactCount);
-        telemetry.addData("Bot pose", botPose);
+        telemetry.addData("Bot pose", this.robot.follower.getPose());
 
         if (this.lastBotState != this.robot.state) {
             gamepad1.rumble(1, 1, 2000);
