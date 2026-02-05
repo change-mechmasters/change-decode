@@ -13,6 +13,9 @@ public class BotContext {
 
     private static final Pose BLUE_GOAL = new Pose(0, 144);
     private static final Pose RED_GOAL = new Pose(144, 144);
+    // TODO: Test these poses an actual field
+    private static final Pose BLUE_PARK = new Pose(105.5, 33, Math.toRadians(90));
+    private static final Pose RED_PARK = new Pose(38.5, 33, Math.toRadians(90));
 
     public enum Alliance {
         BLUE,
@@ -33,10 +36,17 @@ public class BotContext {
             return new Pose(144 - x, y, Math.toRadians(180) - heading);
     }
 
-    public static Pose getGoal() {
+    public static Pose getGoalPose() {
         if (BotContext.alliance == Alliance.BLUE)
             return BotContext.BLUE_GOAL;
         else
             return BotContext.RED_GOAL;
+    }
+
+    public static Pose getParkPose() {
+        if (BotContext.alliance == Alliance.BLUE)
+            return BotContext.BLUE_PARK;
+        else
+            return BotContext.RED_PARK;
     }
 }

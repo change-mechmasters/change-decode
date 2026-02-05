@@ -2,8 +2,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -32,7 +34,7 @@ public class Robot {
         DRIVING,
         SHOOTING,
         INTAKING,
-        //PARKING, // TODO: Think about an automatic parking state
+        PARKING,
         IDLING,
     }
 
@@ -77,6 +79,9 @@ public class Robot {
             case INTAKING:
                 this.handleIntakingState();
                 break;
+            case PARKING:
+                this.handleParkingState();
+                break;
             case IDLING:
                 this.handleIdlingState();
                 break;
@@ -119,6 +124,25 @@ public class Robot {
 
     public void exitIntakingState() {
         this.state = State.DRIVING;
+    }
+
+    public void enterParkingState() {
+        this.state = State.PARKING;
+        final Pose botPose = this.follower.getPose();
+        final Pose parkPose = BotContext.getParkPose();
+        final PathChain parkingPath = this.follower.pathBuilder()
+                .addPath(new BezierLine(botPose, parkPose))
+                .setLinearHeadingInterpolation(botPose.getHeading(), parkPose.getHeading())
+                .build();
+        this.follower.followPath(parkingPath, true);
+    }
+
+    public void exitParkingState() {
+        this.state = State.DRIVING;
+        // SAFETY: It would be disastrous if this ran in autonomous, but it's fine
+        //  since this state should never be entered in autonomous.
+        this.follower.pausePathFollowing();
+        this.follower.startTeleOpDrive();
     }
 
     public void enterIdlingState() {
@@ -183,6 +207,11 @@ public class Robot {
             this.exitIntakingState();
     }
 
+    private void handleParkingState() {
+        this.intake.setEnabled(false);
+        this.shooter.setEnabled(false);
+    }
+
     // STRATEGY: This is a state in which everything is disabled to conserve energy.
     private void handleIdlingState() {
         this.intake.setEnabled(false);
@@ -191,7 +220,7 @@ public class Robot {
 
     private double getDistanceToGoal() {
         final Pose botPose = this.follower.getPose();
-        final Pose goal = BotContext.getGoal();
+        final Pose goal = BotContext.getGoalPose();
         final double x_diff = goal.getX() - botPose.getX();
         final double y_diff = goal.getY() - botPose.getY();
         final double distance_ticks = Math.sqrt(x_diff*x_diff + y_diff*y_diff);
@@ -200,7 +229,7 @@ public class Robot {
 
     private double getDesiredHeading() {
         final Pose botPose = this.follower.getPose();
-        final Pose goal = BotContext.getGoal();
+        final Pose goal = BotContext.getGoalPose();
         final double opp = Math.abs(goal.getY() - botPose.getY());
         final double adj = Math.abs(goal.getX() - botPose.getX());
         final double angle = Math.atan(opp / adj);

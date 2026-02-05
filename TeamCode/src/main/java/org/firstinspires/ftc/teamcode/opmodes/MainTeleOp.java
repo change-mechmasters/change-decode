@@ -50,6 +50,12 @@ public class MainTeleOp extends OpMode {
             else if (this.robot.state == Robot.State.IDLING)
                 this.robot.exitIdlingState();
         }
+        if (gamepad1.crossWasPressed()) {
+            if (this.robot.state == Robot.State.DRIVING)
+                this.robot.enterParkingState();
+            else if (this.robot.state == Robot.State.PARKING)
+                this.robot.exitParkingState();
+        }
 
         if (gamepad1.right_trigger > 0 && lastGamepad.right_trigger == 0) {
             if (this.robot.state == Robot.State.DRIVING)
