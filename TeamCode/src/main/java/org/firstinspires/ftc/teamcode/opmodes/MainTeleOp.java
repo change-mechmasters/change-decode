@@ -11,7 +11,6 @@ import org.firstinspires.ftc.teamcode.Robot;
 public class MainTeleOp extends OpMode {
     private Robot robot;
     private Robot.State lastBotState;
-    private int lastArtifactCount;
     private final Gamepad lastGamepad = new Gamepad();
 
     @Override

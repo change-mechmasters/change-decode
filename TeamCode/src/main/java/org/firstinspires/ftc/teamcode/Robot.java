@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 public class Robot {
@@ -27,11 +26,7 @@ public class Robot {
     private final Shooter shooter;
 
     private static final double FIELD_DISTANCE_CONVERSION_RATE = 3.6 / 144.0; // Competition manual
-    private static final double MAX_AIM_ERROR = Math.toRadians(7.5);
     private static final double MAX_EMPTY_TIME = 1.75;
-    private static Pose GOAL;
-    private static final Pose BLUE_GOAL = new Pose(0, 144);
-    private static final Pose RED_GOAL = new Pose(144, 144);
 
     public enum State {
         DRIVING,
@@ -60,11 +55,6 @@ public class Robot {
         this.state = State.DRIVING;
         this.autoAim = false;
         this.aimController = new PIDFController(follower.constants.coefficientsHeadingPIDF);
-
-        if (BotContext.alliance == BotContext.Alliance.BLUE)
-            GOAL = BLUE_GOAL;
-        else
-            GOAL = RED_GOAL;
     }
 
     public void update() {
@@ -201,18 +191,20 @@ public class Robot {
 
     private double getDistanceToGoal() {
         final Pose botPose = this.follower.getPose();
-        final double x_diff = GOAL.getX() - botPose.getX();
-        final double y_diff = GOAL.getY() - botPose.getY();
+        final Pose goal = BotContext.getGoal();
+        final double x_diff = goal.getX() - botPose.getX();
+        final double y_diff = goal.getY() - botPose.getY();
         final double distance_ticks = Math.sqrt(x_diff*x_diff + y_diff*y_diff);
         return distance_ticks * FIELD_DISTANCE_CONVERSION_RATE;
     }
 
     private double getDesiredHeading() {
         final Pose botPose = this.follower.getPose();
-        final double opp = Math.abs(GOAL.getY() - botPose.getY());
-        final double adj = Math.abs(GOAL.getX() - botPose.getX());
+        final Pose goal = BotContext.getGoal();
+        final double opp = Math.abs(goal.getY() - botPose.getY());
+        final double adj = Math.abs(goal.getX() - botPose.getX());
         final double angle = Math.atan(opp / adj);
-        if (botPose.getX() > GOAL.getX())
+        if (botPose.getX() > goal.getX())
             return Math.toRadians(180) - angle;
         else
             return angle;
