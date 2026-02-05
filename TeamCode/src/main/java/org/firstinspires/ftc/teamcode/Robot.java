@@ -38,6 +38,7 @@ public class Robot {
         SHOOTING,
         INTAKING,
         //PARKING, // TODO: Think about an automatic parking state
+        IDLING,
     }
 
     private enum ShooterState {
@@ -86,6 +87,9 @@ public class Robot {
             case INTAKING:
                 this.handleIntakingState();
                 break;
+            case IDLING:
+                this.handleIdlingState();
+                break;
         }
     }
 
@@ -124,6 +128,14 @@ public class Robot {
     }
 
     public void exitIntakingState() {
+        this.state = State.DRIVING;
+    }
+
+    public void enterIdlingState() {
+        this.state = State.IDLING;
+    }
+
+    public void exitIdlingState() {
         this.state = State.DRIVING;
     }
 
@@ -179,6 +191,12 @@ public class Robot {
         this.shooter.setEnabled(false);
         if (this.artifactCount == 3)
             this.exitIntakingState();
+    }
+
+    // STRATEGY: This is a state in which everything is disabled to conserve energy.
+    private void handleIdlingState() {
+        this.intake.setEnabled(false);
+        this.shooter.setEnabled(false);
     }
 
     private double getDistanceToGoal() {

@@ -120,6 +120,7 @@ public class ForwardAuto extends OpMode {
             case GO_TO_END:
                 if (this.robot.state == Robot.State.DRIVING) {
                     this.robot.exitShootingState();
+                    this.robot.enterIdlingState();
                     this.robot.follower.followPath(this.park);
                     return PathState.END;
                 }

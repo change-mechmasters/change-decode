@@ -29,7 +29,6 @@ public class MainTeleOp extends OpMode {
     public void start() {
         this.robot.follower.startTeleopDrive();
         this.lastBotState = this.robot.state;
-        this.lastArtifactCount = this.robot.artifactCount;
     }
 
     @Override
@@ -46,6 +45,13 @@ public class MainTeleOp extends OpMode {
             else if (this.robot.state == Robot.State.SHOOTING)
                 this.robot.exitShootingState();
         }
+        if (gamepad1.triangleWasPressed()) {
+            if (this.robot.state == Robot.State.DRIVING)
+                this.robot.enterIdlingState();
+            else if (this.robot.state == Robot.State.IDLING)
+                this.robot.exitIdlingState();
+        }
+
         if (gamepad1.right_trigger > 0 && lastGamepad.right_trigger == 0) {
             if (this.robot.state == Robot.State.DRIVING)
                 this.robot.enterIntakingState();
@@ -63,12 +69,8 @@ public class MainTeleOp extends OpMode {
         if (this.lastBotState != this.robot.state) {
             gamepad1.rumble(1, 1, 2000);
         }
-        if (this.lastArtifactCount != this.robot.artifactCount) {
-            gamepad1.rumble(0.1, 0.1, 500);
-        }
 
         this.lastGamepad.copy(gamepad1);
         this.lastBotState = this.robot.state;
-        this.lastArtifactCount = this.robot.artifactCount;
     }
 }

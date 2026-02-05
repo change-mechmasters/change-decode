@@ -88,8 +88,13 @@ public class BackAuto extends OpMode {
                 else
                     return this.pathState;
             case END:
-                if (!this.robot.follower.isBusy())
+                if (!this.robot.follower.isBusy()) {
                     this.robot.follower.pausePathFollowing();
+                    // SAFETY: This state transition will be called repeatedly, which is generally
+                    //  bad, but it doesn't matter in this case and it'll take too much effort
+                    //  to fix it.
+                    this.robot.enterIdlingState();
+                }
                 return this.pathState;
         }
         return this.pathState; // This should never run but it errors otherwise.
