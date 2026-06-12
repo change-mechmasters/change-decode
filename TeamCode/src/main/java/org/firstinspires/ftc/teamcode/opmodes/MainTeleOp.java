@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.BotContext;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -10,8 +10,8 @@ import org.firstinspires.ftc.teamcode.Robot;
 @TeleOp
 public class MainTeleOp extends OpMode {
     private Robot robot;
-    private Robot.State lastBotState;
-    private final Gamepad lastGamepad = new Gamepad();
+    private int lastArtifactCount;
+    private boolean lastAimState;
 
     @Override
     public void init() {
@@ -27,16 +27,17 @@ public class MainTeleOp extends OpMode {
     @Override
     public void start() {
         this.robot.follower.startTeleopDrive();
-        this.lastBotState = this.robot.state;
+        this.lastAimState = this.robot.isAimReady();
+        this.lastArtifactCount = this.robot.artifactCount;
     }
 
     @Override
     public void loop() {
         this.robot.update();
 
-        this.robot.setTeleOpDrive(gamepad1);
-        if (gamepad1.rightStickButtonWasPressed())
-            this.robot.toggleAutoAim();
+        this.robot.follower.setTeleOpDrive(
+                -gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x
+        );
 
         if (gamepad1.circleWasPressed()) {
             if (this.robot.state == Robot.State.DRIVING)
@@ -44,38 +45,29 @@ public class MainTeleOp extends OpMode {
             else if (this.robot.state == Robot.State.SHOOTING)
                 this.robot.exitShootingState();
         }
-        if (gamepad1.triangleWasPressed()) {
-            if (this.robot.state == Robot.State.DRIVING)
-                this.robot.enterIdlingState();
-            else if (this.robot.state == Robot.State.IDLING)
-                this.robot.exitIdlingState();
-        }
-        if (gamepad1.crossWasPressed()) {
-            if (this.robot.state == Robot.State.DRIVING)
-                this.robot.enterParkingState();
-            else if (this.robot.state == Robot.State.PARKING)
-                this.robot.exitParkingState();
-        }
-
-        if (gamepad1.right_trigger > 0 && lastGamepad.right_trigger == 0) {
+        if (gamepad1.squareWasPressed()) {
             if (this.robot.state == Robot.State.DRIVING)
                 this.robot.enterIntakingState();
-        }
-        if (gamepad1.right_trigger == 0 && lastGamepad.right_trigger > 0) {
-            if (this.robot.state == Robot.State.INTAKING)
+            else if (this.robot.state == Robot.State.INTAKING)
                 this.robot.exitIntakingState();
         }
 
+        Pose botPose = this.robot.follower.getPose();
         telemetry.addData("State", this.robot.state);
-        telemetry.addData("Auto aim", this.robot.autoAim);
+        telemetry.addData("Bot pose", botPose);
         telemetry.addData("Artifact count", this.robot.artifactCount);
-        telemetry.addData("Bot pose", this.robot.follower.getPose());
+        telemetry.addData("Desired heading", Math.toDegrees(Robot.getDesiredHeading(botPose)));
+        telemetry.addData("Current heading", Math.toDegrees(this.robot.follower.getHeading()));
 
-        if (this.lastBotState != this.robot.state) {
-            gamepad1.rumble(1, 1, 2000);
+        final boolean currentAimState = this.robot.isAimReady();
+        if (this.lastAimState != currentAimState) {
+            gamepad1.rumble(1000);
+        }
+        if (this.lastArtifactCount != this.robot.artifactCount) {
+            gamepad1.rumble(500);
         }
 
-        this.lastGamepad.copy(gamepad1);
-        this.lastBotState = this.robot.state;
+        this.lastArtifactCount = this.robot.artifactCount;
+        this.lastAimState = currentAimState;
     }
 }

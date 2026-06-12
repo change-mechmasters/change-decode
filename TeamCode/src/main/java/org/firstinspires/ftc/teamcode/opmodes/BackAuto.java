@@ -16,10 +16,10 @@ public class BackAuto extends OpMode {
     private Robot robot;
     private PathState pathState;
     private final ElapsedTime intakingTimer = new ElapsedTime();
-    private final Pose startPose = BotContext.buildPose(48, 8, Math.toRadians(90));
-    private final Pose shootPose = BotContext.buildPose(60, 20, Math.toRadians(116));
-    private final Pose pickup1Control = BotContext.buildPose(85, 35, Math.toRadians(180));
-    private final Pose pickup1 = BotContext.buildPose(9, 36, Math.toRadians(180));
+    private final Pose startPose = buildPose(48, 8, Math.toRadians(90));
+    private final Pose shootPose = buildPose(60, 20, Math.toRadians(114));
+    private final Pose pickup1Control = buildPose(85, 35, Math.toRadians(180));
+    private final Pose pickup1 = buildPose(9, 36, Math.toRadians(180));
     private PathChain shootInitial, grab1;
 
     enum PathState {
@@ -47,13 +47,9 @@ public class BackAuto extends OpMode {
     }
 
     @Override
-    public void init_loop() {
-        telemetry.addData("Current alliance", BotContext.alliance);
-    }
-
-    @Override
     public void start() {
         this.pathState = PathState.GO_TO_SHOOT_INITIAL;
+        telemetry.addData("Current alliance", BotContext.alliance);
     }
 
     @Override
@@ -88,15 +84,17 @@ public class BackAuto extends OpMode {
                 else
                     return this.pathState;
             case END:
-                if (!this.robot.follower.isBusy()) {
+                if (!this.robot.follower.isBusy())
                     this.robot.follower.pausePathFollowing();
-                    // SAFETY: This state transition will be called repeatedly, which is generally
-                    //  bad, but it doesn't matter in this case and it'll take too much effort
-                    //  to fix it.
-                    this.robot.enterIdlingState();
-                }
                 return this.pathState;
         }
         return this.pathState; // This should never run but it errors otherwise.
+    }
+
+    private Pose buildPose(double x, double y, double heading) {
+        if (BotContext.alliance == BotContext.Alliance.BLUE)
+            return new Pose(x, y, heading);
+        else
+            return new Pose(144 - x, y, Math.toRadians(180) - heading);
     }
 }

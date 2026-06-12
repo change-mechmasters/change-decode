@@ -16,12 +16,12 @@ public class ForwardAuto extends OpMode {
     private Robot robot;
     private PathState pathState;
     private final ElapsedTime intakingTimer = new ElapsedTime();
-    private final Pose startPose = BotContext.buildPose(20, 122, Math.toRadians(145));
-    private final Pose shootPose = BotContext.buildPose(48, 95, Math.toRadians(134));
-    private final Pose pickup1Control = BotContext.buildPose(62, 77, Math.toRadians(180));
-    private final Pose pickup1 = BotContext.buildPose(22, 80, Math.toRadians(180));
-    private final Pose endPose = BotContext.buildPose(55, 70, Math.toRadians(180));
-    private PathChain shootInitial, grab1, shoot1, park;
+    private final Pose startPose = buildPose(20, 122, Math.toRadians(145));
+    private final Pose shootPose = buildPose(48, 95, Math.toRadians(135));
+    private final Pose pickup1Control = buildPose(62, 77, Math.toRadians(180));
+    private final Pose pickup1 = buildPose(22, 80, Math.toRadians(180));
+    private final Pose endPose = buildPose(55, 70, Math.toRadians(180));
+    private PathChain shootInitial,grab1, shoot1, park;
 
     private static final double MAX_INTAKING_TIME = 5;
 
@@ -41,7 +41,6 @@ public class ForwardAuto extends OpMode {
         this.robot = new Robot(hardwareMap, startPose);
         this.robot.follower.setMaxPower(0.5);
         BotContext.setGamepadColor(gamepad1);
-
         this.shootInitial = this.robot.follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
                 .setLinearHeadingInterpolation(startPose.getHeading(), shootPose.getHeading())
@@ -62,13 +61,9 @@ public class ForwardAuto extends OpMode {
     }
 
     @Override
-    public void init_loop() {
-        telemetry.addData("Current alliance", BotContext.alliance);
-    }
-
-    @Override
     public void start() {
         this.pathState = PathState.GO_TO_SHOOT_INITIAL;
+        telemetry.addData("Current alliance", BotContext.alliance);
     }
 
     @Override
@@ -120,7 +115,6 @@ public class ForwardAuto extends OpMode {
             case GO_TO_END:
                 if (this.robot.state == Robot.State.DRIVING) {
                     this.robot.exitShootingState();
-                    this.robot.enterIdlingState();
                     this.robot.follower.followPath(this.park);
                     return PathState.END;
                 }
@@ -132,5 +126,12 @@ public class ForwardAuto extends OpMode {
                 return this.pathState;
         }
         return this.pathState; // This should never run but it errors without it.
+    }
+
+    private Pose buildPose(double x, double y, double heading) {
+        if (BotContext.alliance == BotContext.Alliance.BLUE)
+            return new Pose(x, y, heading);
+        else
+            return new Pose(144 - x, y, Math.toRadians(180) - heading);
     }
 }
